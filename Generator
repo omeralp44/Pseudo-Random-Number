@@ -1,0 +1,507 @@
+PART A
+	
+	SETB P2.6
+	SETB P2.4
+	SETB P2.5
+	MOV TMOD,#10H
+UP:	JB P2.4, OVER
+	JB P2.5, DOWN
+	ACALL DELAY50HZ
+	SJMP UP
+OVER:	JB P2.5, GO
+	ACALL DELAY100HZ
+	SJMP UP
+DOWN:	JB P2.4, GO
+	ACALL DELAY250HZ
+	SJMP UP
+GO:	ACALL DELAY500HZ
+	LJMP UP
+
+DELAY500HZ:
+	    MOV TH1, #0FCH
+	    MOV TL1, #28H
+	    SETB TR1
+  HERE:	    JNB TF1, HERE
+  	    CLR TR1
+  	    CLR TF1
+  	    CPL P2.6
+  	    RET
+
+DELAY250HZ:
+	    MOV TH1, #0F8H
+	    MOV TL1, #040H
+	    SETB TR1
+  THERE:    JNB TF1, THERE
+  	    CLR TR1
+  	    CLR TF1
+  	    CPL P2.6
+  	    RET
+
+DELAY100HZ:
+	    MOV R1, #60
+  REVERSE:  DJNZ R1, REVERSE
+	    MOV TH1, #0EDH
+	    MOV TL1, #00H
+	    SETB TR1
+  BACK:	    JNB TF1, BACK
+  	    CLR TR1
+  	    CLR TF1
+  	    CPL P2.6
+  	    RET
+
+DELAY50HZ:
+	    MOV TH1, #0D9H
+	    MOV TL1, #00H
+	    SETB TR1
+  LEFT:	    JNB TF1, LEFT
+  	    CLR TR1
+  	    CLR TF1
+  	    CPL P2.6
+  	    RET
+
+PART Ba
+	
+	SETB P2.4
+	MOV TMOD,#20H
+	MOV TH1,#0C2H
+
+UP:	MOV C,P2.4
+	ACALL DELAY
+	MOV P2.7,C
+	SJMP UP
+
+DELAY:
+	SETB TR1
+  HERE:	JNB TF1, HERE
+  	CLR TF1
+  	CLR TR1
+  	RET
+
+PART Bb
+	
+	SETB P2.4
+	MOV TMOD,#10H
+	
+UP:	MOV C,P2.4
+	ACALL DELAY
+	MOV P2.7,C
+	SJMP UP
+
+
+DELAY:
+	MOV TH1,#0DCH
+	MOV TL1,#8FH
+	SETB TR1
+  HERE:	JNB TF1, HERE
+  	CLR TF1
+  	CLR TR1
+  	RET
+
+PART C
+
+BACK:   acall configure_lcd
+
+
+	MOV R0,#58H
+	MOV R1,#96H
+
+	ACALL RANDOMBYTE
+	ACALL DELAY1S
+	MOV A,28H
+	ACALL HEXTODEC
+	ACALL TOASCII
+
+
+	MOV A,33H
+	CJNE A,#30H,OVER
+	SJMP DOWN
+OVER:   ACALL SEND_DATA
+DOWN:	MOV A,34H	
+	ACALL SEND_DATA
+	MOV A,35H
+	ACALL SEND_DATA
+	MOV A,#'|'; PRINTING |
+        ACALL SEND_DATA
+        
+        
+
+	ACALL RANDOMBYTE
+	ACALL DELAY1S
+	MOV A,28H
+	ACALL HEXTODEC
+	ACALL TOASCII
+
+
+	MOV A,33H
+	CJNE A,#30H,OVER1
+	SJMP DOWN1
+OVER1:   ACALL SEND_DATA
+DOWN1:	MOV A,34H
+	ACALL SEND_DATA
+	MOV A,35H
+	ACALL SEND_DATA
+	MOV A,#'|'; PRINTING |
+        ACALL SEND_DATA
+
+
+	ACALL RANDOMBYTE
+	ACALL DELAY1S
+	MOV A,28H
+	ACALL HEXTODEC
+	ACALL TOASCII
+
+
+	MOV A,33H
+	CJNE A,#30H,OVER2
+	SJMP DOWN2
+OVER2:  ACALL SEND_DATA
+DOWN2:	MOV A,34H
+	ACALL SEND_DATA
+	MOV A,35H
+	ACALL SEND_DATA
+	MOV A,#'|'; PRINTING |
+        ACALL SEND_DATA
+      
+
+
+	ACALL RANDOMBYTE
+	ACALL DELAY1S
+	MOV A,28H
+	ACALL HEXTODEC
+	ACALL TOASCII
+
+
+	MOV A,33H
+	CJNE A,#30H,OVER3
+	SJMP DOWN3
+OVER3:  ACALL SEND_DATA
+DOWN3:	MOV A,34H
+	ACALL SEND_DATA
+	MOV A,35H
+	ACALL SEND_DATA
+	
+        
+
+	ACALL RANDOMBYTE
+	ACALL DELAY1S
+	MOV A,28H
+	ACALL HEXTODEC
+	ACALL TOASCII
+
+
+	MOV A,33H
+	CJNE A,#30H,OVER4
+	SJMP DOWN4
+OVER4:  ACALL SEND_DATA
+DOWN4:	MOV A,34H
+	ACALL SEND_DATA
+	MOV A,35H
+	ACALL SEND_DATA
+
+	ACALL KEYBOARD
+	LJMP BACK
+        
+
+
+
+
+
+HEXTODEC:
+	 MOV 30H,A
+	 ANL A,#0F0H
+	 SWAP A
+	 MOV B,#16D
+	 MUL AB
+	 MOV 31H,A
+	 MOV A,30H
+	 ANL A,#0FH
+	 ADD A,31H
+	 RET
+
+TOASCII:
+	MOV B,#100D
+	DIV AB
+	MOV 33H,A
+	MOV A,B
+	MOV B,#10D
+	DIV AB
+	MOV 34H,A
+	MOV A,B
+	MOV 35H,A
+
+	ORL 33H,#30H
+	ORL 34H,#30H
+	ORL 35H,#30H
+	RET
+	
+
+
+
+DELAY1S:
+       MOV TMOD,#10H
+       MOV 29H,#14
+  UP:  MOV TH1,#0
+       MOV TL1,#0
+       SETB TR1
+  HERE:JNB TF1, HERE
+       CLR TR1
+       CLR TF1
+       DJNZ 29H,UP
+
+       MOV TH1,#0EFH
+       MOV TL1,#0C6H
+       SETB TR1
+ THERE:JNB TF1, THERE
+       CLR TR1
+       CLR TF1
+       RET
+
+
+
+
+RANDOMBYTE:
+	   ACALL RANDOMBIT
+	   MOV A,R3
+	   MOV 20H,A
+
+	   ACALL RANDOMBIT
+	   MOV A,R3
+	   RL A
+	   MOV 21H,A
+
+	   ACALL RANDOMBIT
+	   MOV A,R3
+	   RL A
+	   RL A
+	   MOV 22H,A
+
+	   ACALL RANDOMBIT
+	   MOV A,R3
+	   RL A
+	   RL A
+	   RL A
+	   MOV 23H,A
+
+	   ACALL RANDOMBIT
+	   MOV A,R3
+	   RL A
+	   RL A
+	   RL A
+	   RL A
+	   MOV 24H,A
+
+	   ACALL RANDOMBIT
+	   MOV A,R3
+	   RL A
+	   RL A
+	   RL A
+	   RL A
+	   RL A
+	   MOV 25H,A
+
+	   ACALL RANDOMBIT
+	   MOV A,R3
+	   RL A
+	   RL A
+	   RL A
+	   RL A
+	   RL A
+	   RL A
+	   MOV 26H,A
+
+	   ACALL RANDOMBIT
+	   MOV A,R3
+	   RL A
+	   RL A
+	   RL A
+	   RL A
+	   RL A
+	   RL A
+	   RL A
+	   MOV 27H,A
+
+	   CLR A
+	   ADD A,20H
+	   ADD A,21H
+	   ADD A,22H
+	   ADD A,23H
+	   ADD A,24H
+	   ADD A,25H
+	   ADD A,26H
+	   ADD A,27H
+
+	   MOV 28H,A   ;RANDOMBYTE IS IN 28H 
+	   RET
+	   
+
+
+
+RANDOMBIT:
+	 
+	   MOV A,R1
+	   ANL A,#01H
+	   MOV R3,A
+	   MOV A,R1
+	   ANL A,#04H
+	   RR A
+	   RR A
+	   MOV R4,A
+	   MOV A,R1
+	   ANL A,#08H
+	   RR A
+	   RR A
+	   RR A
+	   MOV R5,A
+	   MOV A,R1
+	   ANL A,#20H
+	   RL A
+	   RL A
+	   RL A
+	   MOV R6,A
+	   MOV A,R3
+	   XRL A,R4
+	   XRL A,R5
+	   XRL A,R6
+	   ANL A,#01H
+	   RR A
+	   MOV R2,A
+
+	   CLR C   ;SHIFTING
+	   MOV A,R0
+	   RRC A
+	   MOV R0,A
+	   MOV A,R1
+	   RRC A
+	   MOV R1,A
+
+	   MOV A,R2   ;STEP 5
+	   ORL A,R0
+	   MOV R0,A
+	   RET
+
+
+
+
+
+
+
+CONFIGURE_LCD:	;THIS SUBROUTINE SENDS THE INITIALIZATION COMMANDS TO THE LCD
+	mov a,#38H	;TWO LINES, 5X7 MATRIX
+	acall SEND_COMMAND
+	mov a,#0FH	;DISPLAY ON, CURSOR BLINKING
+	acall SEND_COMMAND
+	mov a,#06H	;INCREMENT CURSOR (SHIFT CURSOR TO RIGHT)
+	acall SEND_COMMAND
+	mov a,#01H	;CLEAR DISPLAY SCREEN
+	acall SEND_COMMAND
+	mov a,#80H	;FORCE CURSOR TO BEGINNING OF THE FIRST LINE
+	acall SEND_COMMAND
+	ret
+
+
+
+SEND_COMMAND:
+	mov p1,a		;THE COMMAND IS STORED IN A, SEND IT TO LCD
+	clr p3.5		;RS=0 BEFORE SENDING COMMAND
+	clr p3.6		;R/W=0 TO WRITE
+	setb p3.7	;SEND A HIGH TO LOW SIGNAL TO ENABLE PIN
+	acall DELAY
+	clr p3.7
+	ret
+
+
+SEND_DATA:
+	mov p1,a		;SEND THE DATA STORED IN A TO LCD
+	setb p3.5	;RS=1 BEFORE SENDING DATA
+	clr p3.6		;R/W=0 TO WRITE
+	setb p3.7	;SEND A HIGH TO LOW SIGNAL TO ENABLE PIN
+	acall DELAY
+	clr p3.7
+	ret
+
+
+DELAY:
+	push 0
+	push 1
+	mov r0,#50
+DELAY_OUTER_LOOP:
+	mov r1,#255
+	djnz r1,$
+	djnz r0,DELAY_OUTER_LOOP
+	pop 1
+	pop 0
+	ret
+
+
+KEYBOARD: ;takes the key pressed from the keyboard and puts it to A
+	mov	P0, #0ffh	;makes P0 input
+K1:
+	mov	P2, #0	;ground all rows
+	mov	A, P0
+	anl	A, #00001111B
+	cjne	A, #00001111B, K1
+K2:
+	acall	DELAY
+	mov	A, P0
+	anl	A, #00001111B
+	cjne	A, #00001111B, KB_OVER
+	sjmp	K2
+KB_OVER:
+	acall DELAY
+	mov	A, P0
+	anl	A, #00001111B
+	cjne	A, #00001111B, KB_OVER1
+	sjmp	K2
+KB_OVER1:
+	mov	P2, #11111110B
+	mov	A, P0
+	anl	A, #00001111B
+	cjne	A, #00001111B, ROW_0
+	mov	P2, #11111101B
+	mov	A, P0
+	anl	A, #00001111B
+	cjne	A, #00001111B, ROW_1
+	mov	P2, #11111011B
+	mov	A, P0
+	anl	A, #00001111B
+	cjne	A, #00001111B, ROW_2
+	mov	P2, #11110111B
+	mov	A, P0
+	anl	A, #00001111B
+	cjne	A, #00001111B, ROW_3
+	ljmp	K2
+	
+ROW_0:
+	mov	DPTR, #KCODE0
+	sjmp	KB_FIND
+ROW_1:
+	mov	DPTR, #KCODE1
+	sjmp	KB_FIND
+ROW_2:
+	mov	DPTR, #KCODE2
+	sjmp	KB_FIND
+ROW_3:
+	mov	DPTR, #KCODE3
+KB_FIND:
+	rrc	A
+	jnc	KB_MATCH
+	inc	DPTR
+	sjmp	KB_FIND
+KB_MATCH:
+	clr	A
+	movc	A, @A+DPTR; get ASCII code from the table 
+	ret
+
+;ASCII look-up table 
+KCODE0:	DB	'1', '2', '3', 'A'
+KCODE1:	DB	'4', '5', '6', 'B'
+KCODE2:	DB	'7', '8', '9', 'C'
+KCODE3:	DB	'*', '0', '#', 'D'
+END
+
+
+
+	   
+
+
+
